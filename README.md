@@ -14,8 +14,11 @@ Double-click `Play.bat`, or from a terminal:
 
 **Requirements:** Windows PowerShell 5.1 or later, and a terminal at least **100x30**. Windows Terminal is recommended for the best coloration.
 
+The game opens with a window size chooser - pick a preset, the largest size your display allows, the size the window already is, or type your own columns and rows. The trail itself is drawn 100x30 and centered in whatever you choose. Windows Terminal does not let a running program resize its own window, so there the chooser offers to open a new window at the size you picked.
+
 | Option | Effect |
 |---|---|
+| `-WindowSize 120x36` | Skip the chooser and use that size. Also accepts `Classic`, `Comfortable`, `Large`, `Wide`, `current` and `max` |
 | `-ColorMode 16` | Use 16 colors instead of 256, for terminals with limited color support |
 | `-SkipSizeCheck` | Start anyway in a smaller window |
 

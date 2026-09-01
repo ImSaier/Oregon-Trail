@@ -4,6 +4,7 @@ $script:OTLoadOrder = @(
     'Core\Palette.ps1'
     'Core\Buffer.ps1'
     'Core\Terminal.ps1'
+    'Core\WindowSize.ps1'
     'Core\Input.ps1'
     'Core\GameLoop.ps1'
     'UI\Widgets.ps1'
