@@ -11,11 +11,12 @@ $script:OTHuntBottom = 25
 $script:OTHuntCarryLimit = 100
 $script:OTHuntDurationFrames = 260
 $script:OTHuntFps = 20
-$script:OTHuntReloadFrames = 12
+$script:OTHuntReloadFrames = 10
 $script:OTHuntBulletSpeedX = 3
 $script:OTHuntBulletSpeedY = 1
-$script:OTHuntMaxAnimals = 4
-$script:OTHuntBulletRange = 34
+$script:OTHuntMaxAnimals = 5
+$script:OTHuntBulletRange = 40
+$script:OTHuntHitTolerance = 2
 $script:OTHuntSpawnMin = 12
 $script:OTHuntSpawnMax = 28
 
@@ -76,10 +77,13 @@ function Test-BulletHit {
     if ($row -lt 0 -or $row -ge $Animal.H) { return $false }
     $line = $Animal.Art[$row]
     if ($null -eq $line -or $line.Length -eq 0) { return $false }
-    if ($col -lt 0 -or $col -ge $line.Length) { return $false }
-    if ($line[$col] -ne ' ') { return $true }
-    if ($col -gt 0 -and $line[$col - 1] -ne ' ') { return $true }
-    if (($col + 1) -lt $line.Length -and $line[$col + 1] -ne ' ') { return $true }
+    $tol = $script:OTHuntHitTolerance
+    if ($col -lt (-$tol) -or $col -ge ($line.Length + $tol)) { return $false }
+    for ($d = -$tol; $d -le $tol; $d++) {
+        $c = $col + $d
+        if ($c -lt 0 -or $c -ge $line.Length) { continue }
+        if ($line[$c] -ne ' ') { return $true }
+    }
     return $false
 }
 
