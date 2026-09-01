@@ -1,17 +1,17 @@
 $script:OTStoreItems = @(
-    @{ Key = 'Oxen';     Label = 'Oxen';                 Unit = 'yoke';   Price = 40.0;  Field = 'Oxen';     PerUnit = 2
+    @{ Key = 'Oxen';     Label = 'Oxen';                 Unit = 'yoke';   Plural = 'yoke';    Price = 40.0;  Field = 'Oxen';     PerUnit = 2
        Advice = "You'll need at least 3 yoke of oxen to pull your wagon. Any less and you'll be in trouble before you reach the Kansas River." }
-    @{ Key = 'Food';     Label = 'Food';                 Unit = 'pound';  Price = 0.20;  Field = 'Food';     PerUnit = 1
+    @{ Key = 'Food';     Label = 'Food';                 Unit = 'pound';  Plural = 'pounds';  Price = 0.20;  Field = 'Food';     PerUnit = 1
        Advice = "I'd recommend taking at least 200 pounds of food per person. You can always hunt for more along the way." }
-    @{ Key = 'Clothing'; Label = 'Clothing';             Unit = 'set';    Price = 10.0;  Field = 'Clothing'; PerUnit = 1
+    @{ Key = 'Clothing'; Label = 'Clothing';             Unit = 'set';    Plural = 'sets';    Price = 10.0;  Field = 'Clothing'; PerUnit = 1
        Advice = "You'll need warm clothing when you hit the mountains. I'd recommend at least 2 sets per person." }
-    @{ Key = 'Bullets';  Label = 'Ammunition';           Unit = 'box';    Price = 2.0;   Field = 'Bullets';  PerUnit = 20
+    @{ Key = 'Bullets';  Label = 'Ammunition';           Unit = 'box';    Plural = 'boxes';   Price = 2.0;   Field = 'Bullets';  PerUnit = 20
        Advice = "Ammunition is `$2 for a box of 20 bullets. You'll want plenty for hunting and for trouble." }
-    @{ Key = 'Wheels';   Label = 'Spare wagon wheels';   Unit = 'wheel';  Price = 10.0;  Field = 'Wheels';   PerUnit = 1
+    @{ Key = 'Wheels';   Label = 'Spare wagon wheels';   Unit = 'wheel';  Plural = 'wheels';  Price = 10.0;  Field = 'Wheels';   PerUnit = 1
        Advice = "A broken wheel will stop you cold. I'd take 2 or 3 spares." }
-    @{ Key = 'Axles';    Label = 'Spare wagon axles';    Unit = 'axle';   Price = 10.0;  Field = 'Axles';    PerUnit = 1
+    @{ Key = 'Axles';    Label = 'Spare wagon axles';    Unit = 'axle';   Plural = 'axles';   Price = 10.0;  Field = 'Axles';    PerUnit = 1
        Advice = "Axles snap on rough trail. I'd take 2 or 3 spares." }
-    @{ Key = 'Tongues';  Label = 'Spare wagon tongues';  Unit = 'tongue'; Price = 10.0;  Field = 'Tongues';  PerUnit = 1
+    @{ Key = 'Tongues';  Label = 'Spare wagon tongues';  Unit = 'tongue'; Plural = 'tongues'; Price = 10.0;  Field = 'Tongues';  PerUnit = 1
        Advice = "A cracked tongue means your oxen can't pull. I'd take 2 or 3 spares." }
 )
 
@@ -21,6 +21,21 @@ $script:OTStoreLocation = 'Independence, Missouri'
 function Get-ItemPrice {
     param($Item)
     return [math]::Round($Item.Price * $script:OTStorePriceFactor, 2)
+}
+
+function Get-UnitLabel {
+    param($Item, [int]$Count = 2)
+    if ($Count -eq 1) { return $Item.Unit }
+    if (-not [string]::IsNullOrEmpty($Item.Plural)) { return $Item.Plural }
+    return ($Item.Unit + 's')
+}
+
+function Get-BuyPrompt {
+    param($Item)
+    $units = Get-UnitLabel -Item $Item
+    $label = $Item.Label.ToLower()
+    if ($label.EndsWith($units)) { return "How many $label`?" }
+    return "How many $units of $label`?"
 }
 
 function Get-StoreQuantityText {
@@ -192,14 +207,12 @@ function Show-Store {
         [void](Render-Frame)
         $unitPrice = Get-ItemPrice -Item $item
         $maxAfford = [math]::Floor($State.Money / $unitPrice)
-        $prompt = "How many $($item.Unit)s of $($item.Label.ToLower())?"
-        if ($item.Key -eq 'Food') { $prompt = 'How many pounds of food?' }
-        if ($item.Key -eq 'Oxen') { $prompt = 'How many yoke of oxen?' }
+        $prompt = Get-BuyPrompt -Item $item
         $n = Read-Quantity -Prompt $prompt -UnitPrice $unitPrice -Available $State.Money -MaxUnits ([int]$maxAfford)
         if ($n -le 0) { continue }
         $cost = [math]::Round($n * $unitPrice, 2)
         $State.Money = [math]::Round($State.Money - $cost, 2)
         $State[$item.Field] = $State[$item.Field] + ($n * $item.PerUnit)
-        $note = "You bought $n $($item.Unit)$(if ($n -ne 1) { 's' }) for $(Format-Money $cost)."
+        $note = "You bought $n $(Get-UnitLabel -Item $item -Count $n) for $(Format-Money $cost)."
     }
 }
